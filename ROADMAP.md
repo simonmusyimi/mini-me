@@ -1,0 +1,11 @@
+- [ ] V1: CLI Daily Planner
+- [ ] V1.5: Daily Reflection Loop
+- [ ] V2: Pattern Detection
+- [ ] V3: Memory Engine
+- [ ] V4: Study Agent
+- [ ] V5: Builder/Coding Agent
+- [ ] V6: Content Agent
+- [ ] V7: Fitness/Discipline Agent
+- [ ] V8: Telegram Channel
+- [ ] V9: Tool-Using Assistant
+- [ ] V10: Multi-Agent Supervisor / Digital Twin
