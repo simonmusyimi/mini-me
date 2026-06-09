@@ -43,6 +43,8 @@ The goal is to help this user execute, not feel inspired.
 
 Use unchecked tasks as the active task pool. Completed tasks can inform context but should not be planned again unless clearly necessary.
 
+Pay special attention to memory sections named Completed Tasks, Lessons, Recurring Blockers, and Tomorrow Rules.
+
 GOALS:
 {goals}
 

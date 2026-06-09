@@ -6,6 +6,7 @@ from pathlib import Path
 from core.file_store import FileStore
 from core.llm_provider import get_llm_provider
 from core.planner import Planner
+from core.review_manager import save_daily_review
 from core.task_manager import TaskManager
 
 
@@ -92,34 +93,8 @@ def handle_review(store: FileStore) -> None:
     learned = input("3. What did you learn? ").strip()
     change = input("4. What should change tomorrow? ").strip()
 
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    review = f"""
-## Review - {timestamp}
-
-### Completed
-{completed or "Nothing recorded."}
-
-### Blocked
-{blocked or "Nothing recorded."}
-
-### Learned
-{learned or "Nothing recorded."}
-
-### Change Tomorrow
-{change or "Nothing recorded."}
-"""
-    store.append_file("reviews.md", review)
-
-    memory_note = "\n".join(
-        [
-            f"- Completed: {completed or 'Nothing recorded.'}",
-            f"- Blocked by: {blocked or 'Nothing recorded.'}",
-            f"- Lesson: {learned or 'Nothing recorded.'}",
-            f"- Tomorrow change: {change or 'Nothing recorded.'}",
-        ]
-    )
-    append_memory_entry(store, f"Daily Lesson - {timestamp[:10]}", memory_note)
-    print("Review saved. Mini-Me learned from today.")
+    save_daily_review(store, completed, blocked, learned, change)
+    print("Review saved. Memory updated with today's completed tasks, lessons, blockers, and tomorrow rules.")
 
 
 def handle_plan(planner: Planner) -> None:

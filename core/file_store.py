@@ -53,6 +53,14 @@ Mini-Me is the main project.
 - Often gets excited by new tools
 - Needs simple next actions
 - Should prioritize shipping over researching
+
+## Completed Tasks
+
+## Lessons
+
+## Recurring Blockers
+
+## Tomorrow Rules
 """,
     "reviews.md": """# Reviews
 """,

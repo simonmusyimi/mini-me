@@ -36,7 +36,18 @@ When `/review` runs, Mini-Me asks four questions:
 - What did you learn?
 - What should change tomorrow?
 
-The full review is appended to `data/reviews.md`. A compact lesson entry is appended to `data/memory.md`, so future plans can use what happened.
+The full review is appended to `data/reviews.md`. V1.5 keeps memory easier to scan by updating stable dated sections in `data/memory.md`:
+
+- `Completed Tasks`
+- `Lessons`
+- `Recurring Blockers`
+- `Tomorrow Rules`
+
+Each section receives bullets in this shape:
+
+```md
+- YYYY-MM-DD: Concrete review answer
+```
 
 ## LLM Provider Abstraction
 

@@ -84,7 +84,7 @@ Daily review. Be honest and concrete.
 2. What blocked you? Too much tool research.
 3. What did you learn? The product gets useful when memory updates.
 4. What should change tomorrow? Ship before browsing new frameworks.
-Review saved. Mini-Me learned from today.
+Review saved. Memory updated with today's completed tasks, lessons, blockers, and tomorrow rules.
 ```
 
 ## Data Files
@@ -97,3 +97,10 @@ Mini-Me stores everything locally in markdown:
 - `data/reviews.md`
 
 No database is used in V1.
+
+Daily reviews are saved in full to `data/reviews.md`. Mini-Me also updates clean dated sections in `data/memory.md`:
+
+- `Completed Tasks`
+- `Lessons`
+- `Recurring Blockers`
+- `Tomorrow Rules`
