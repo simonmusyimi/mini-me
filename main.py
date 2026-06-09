@@ -5,6 +5,7 @@ from pathlib import Path
 
 from core.file_store import FileStore
 from core.llm_provider import get_llm_provider
+from core.pattern_detector import analyze_and_update_patterns
 from core.planner import Planner
 from core.review_manager import save_daily_review
 from core.task_manager import TaskManager
@@ -18,13 +19,14 @@ def print_intro() -> None:
     print("Mini-Me")
     print("The infrastructure of ambition for people without mentors, money, or network.")
     print()
-    print("Type /plan, /add-task, /show-tasks, /done, /review, /help, or /exit.")
+    print("Type /plan, /patterns, /add-task, /show-tasks, /done, /review, /help, or /exit.")
     print()
 
 
 def print_help() -> None:
     print("Available commands:")
     print("/plan       Generate today's 3 highest-value actions")
+    print("/patterns   Detect repeated blockers, lessons, and tomorrow rules")
     print("/add-task   Add a new task")
     print("/show-tasks Show current tasks")
     print("/done       Mark an open task complete")
@@ -103,6 +105,22 @@ def handle_plan(planner: Planner) -> None:
     print(planner.generate_plan())
 
 
+def handle_patterns(store: FileStore) -> None:
+    print("Analyzing recent reviews for repeated blockers, lessons, and tomorrow rules...")
+    patterns = analyze_and_update_patterns(store)
+    if not patterns:
+        print("No repeated patterns detected yet. Keep completing daily reviews.")
+        print("Memory updated with the current pattern status.")
+        return
+
+    print(f"Detected {len(patterns)} pattern(s):")
+    for pattern in patterns:
+        print(f"- Pattern: {pattern.pattern}")
+        print(f"  Evidence: {pattern.evidence}")
+        print(f"  Suggested response: {pattern.suggested_response}")
+    print("Memory updated under ## Patterns.")
+
+
 def run() -> None:
     store = FileStore(DATA_DIR)
     store.ensure_files()
@@ -125,6 +143,8 @@ def run() -> None:
 
         if command == "/plan":
             handle_plan(planner)
+        elif command == "/patterns":
+            handle_patterns(store)
         elif command == "/add-task":
             handle_add_task(task_manager)
         elif command == "/show-tasks":

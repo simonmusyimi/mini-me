@@ -49,6 +49,22 @@ Each section receives bullets in this shape:
 - YYYY-MM-DD: Concrete review answer
 ```
 
+## How Pattern Detection Works
+
+When `/patterns` runs, Mini-Me reads `data/reviews.md` and parses recent daily reviews. V2 starts with rule-based matching:
+
+- repeated `Blocked` answers become blocker patterns
+- repeated `Learned` answers become lesson patterns
+- repeated `Change Tomorrow` answers become tomorrow-rule patterns
+
+The detector counts repeated normalized phrases across reviews. It writes generated results into `data/memory.md` under `## Patterns` without deleting Simon's existing notes or other memory sections. Each detected pattern includes:
+
+- `Pattern`
+- `Evidence`
+- `Suggested response`
+
+The LLM is not required for V2 pattern detection.
+
 ## LLM Provider Abstraction
 
 `core/llm_provider.py` defines a small provider interface. V1 implements OpenAI through the chat completions API using environment variables:

@@ -58,6 +58,7 @@ python main.py
 ## Commands
 
 - `/plan` - generate today's 3 highest-value actions
+- `/patterns` - detect repeated blockers, lessons, and tomorrow rules
 - `/add-task` - add a new task
 - `/show-tasks` - show current tasks
 - `/done` - mark an open task complete
@@ -85,6 +86,14 @@ Daily review. Be honest and concrete.
 3. What did you learn? The product gets useful when memory updates.
 4. What should change tomorrow? Ship before browsing new frameworks.
 Review saved. Memory updated with today's completed tasks, lessons, blockers, and tomorrow rules.
+
+mini-me> /patterns
+Analyzing recent reviews for repeated blockers, lessons, and tomorrow rules...
+Detected 1 pattern(s):
+- Pattern: Context switching appears repeatedly
+  Evidence: Mentioned in 2 reviews as a blocker
+  Suggested response: Start the day with one execution task before research
+Memory updated under ## Patterns.
 ```
 
 ## Data Files
@@ -104,3 +113,5 @@ Daily reviews are saved in full to `data/reviews.md`. Mini-Me also updates clean
 - `Lessons`
 - `Recurring Blockers`
 - `Tomorrow Rules`
+
+`/patterns` reads `data/reviews.md`, detects repeated blockers, lessons, and tomorrow rules with simple rule-based matching, then writes concise results under `## Patterns` in `data/memory.md`.
