@@ -80,12 +80,12 @@ def _update_memory_sections(store: FileStore, review: DailyReview) -> None:
     }
 
     for section, value in updates.items():
-        memory = _append_dated_bullet(memory, section, review.date_key, value)
+        memory = append_dated_bullet(memory, section, review.date_key, value)
 
     store.write_file("memory.md", memory.rstrip() + "\n")
 
 
-def _append_dated_bullet(content: str, section: str, date_key: str, value: str) -> str:
+def append_dated_bullet(content: str, section: str, date_key: str, value: str) -> str:
     bullet = f"- {date_key}: {value}"
     heading = f"## {section}"
     pattern = re.compile(

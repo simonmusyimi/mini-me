@@ -2,6 +2,7 @@ from pathlib import Path
 
 from core.file_store import FileStore
 from core.task_manager import TaskManager
+from main import handle_done
 
 
 def make_task_manager(tmp_path: Path) -> tuple[FileStore, TaskManager]:
@@ -35,6 +36,27 @@ def test_marking_task_done_updates_only_selected_open_task(tmp_path: Path) -> No
         "[ ] Finish KCA assignment \u2014 SCHOOL\n"
         "[x] Build Mini-Me V1 \u2014 PROJECT\n"
     )
+
+
+def test_done_appends_dated_bullet_under_completed_tasks(tmp_path: Path, monkeypatch, capsys) -> None:
+    store, task_manager = make_task_manager(tmp_path)
+    store.write_file(
+        "memory.md",
+        "# Memory\n\n"
+        "## Completed Tasks\n"
+        "- 2026-06-09: Built the CLI\n\n"
+        "## Lessons\n"
+        "- 2026-06-09: Small loops win\n",
+    )
+    monkeypatch.setattr("builtins.input", lambda prompt="": "1")
+
+    handle_done(store, task_manager)
+
+    memory = store.read_file("memory.md")
+    assert "## Completion" not in memory
+    assert "## Completed Tasks\n- 2026-06-09: Built the CLI\n- " in memory
+    assert "Finish KCA assignment — SCHOOL" in memory
+    assert "## Lessons\n- 2026-06-09: Small loops win" in memory
 
 
 def test_list_tasks_preserves_markdown_task_data(tmp_path: Path) -> None:

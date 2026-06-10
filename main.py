@@ -7,7 +7,7 @@ from core.file_store import FileStore
 from core.llm_provider import get_llm_provider
 from core.pattern_detector import analyze_and_update_patterns
 from core.planner import Planner
-from core.review_manager import save_daily_review
+from core.review_manager import append_dated_bullet, save_daily_review
 from core.task_manager import TaskManager
 
 
@@ -56,9 +56,11 @@ def handle_add_task(task_manager: TaskManager) -> None:
     print(f"Added: {task.display_text()}")
 
 
-def append_memory_entry(store: FileStore, title: str, body: str) -> None:
-    entry = f"\n## {title}\n\n{body.strip()}\n"
-    store.append_file("memory.md", entry)
+def record_completion_in_memory(store: FileStore, completed_text: str) -> None:
+    today = datetime.now().strftime("%Y-%m-%d")
+    memory = store.read_file("memory.md", "# Memory\n")
+    memory = append_dated_bullet(memory, "Completed Tasks", today, completed_text)
+    store.write_file("memory.md", memory.rstrip() + "\n")
 
 
 def handle_done(store: FileStore, task_manager: TaskManager) -> None:
@@ -79,12 +81,7 @@ def handle_done(store: FileStore, task_manager: TaskManager) -> None:
         print(f"Could not mark task done: {exc}")
         return
 
-    today = datetime.now().strftime("%Y-%m-%d")
-    append_memory_entry(
-        store,
-        f"Completion - {today}",
-        f"- Completed: {completed_task.display_text()}",
-    )
+    record_completion_in_memory(store, completed_task.display_text())
     print(f"Done: {completed_task.display_text()}")
 
 
