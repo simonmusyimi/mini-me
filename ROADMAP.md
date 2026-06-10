@@ -1,6 +1,7 @@
 - [ ] V1: CLI Daily Planner
 - [ ] V1.5: Daily Reflection Loop
 - [ ] V2: Pattern Detection
+- [ ] V2.1: Pattern-Aware Planning + Semantic Pattern Detection
 - [ ] V3: Memory Engine
 - [ ] V4: Study Agent
 - [ ] V5: Builder/Coding Agent

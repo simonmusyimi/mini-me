@@ -113,11 +113,17 @@ def handle_patterns(store: FileStore) -> None:
         print("Memory updated with the current pattern status.")
         return
 
-    print(f"Detected {len(patterns)} pattern(s):")
+    print(f"Detected {len(patterns)} grouped pattern(s):")
     for pattern in patterns:
-        print(f"- Pattern: {pattern.pattern}")
-        print(f"  Evidence: {pattern.evidence}")
-        print(f"  Suggested response: {pattern.suggested_response}")
+        print(f"### {pattern.name}")
+        print()
+        print(f"Frequency: {pattern.frequency}")
+        print("Evidence:")
+        for evidence in pattern.evidence:
+            print(f"- {evidence}")
+        print("Suggested Response:")
+        print(pattern.suggested_response)
+        print()
     print("Memory updated under ## Patterns.")
 
 

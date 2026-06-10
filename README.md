@@ -114,4 +114,28 @@ Daily reviews are saved in full to `data/reviews.md`. Mini-Me also updates clean
 - `Recurring Blockers`
 - `Tomorrow Rules`
 
-`/patterns` reads `data/reviews.md`, detects repeated blockers, lessons, and tomorrow rules with simple rule-based matching, then writes concise results under `## Patterns` in `data/memory.md`.
+`/patterns` reads `data/reviews.md`, detects repeated blockers, lessons, and tomorrow rules with local semantic grouping, then writes concise results under `## Patterns` in `data/memory.md`.
+
+V2.1 groups different phrases into higher-level patterns. For example, `context switching`, `opening too many tabs`, `too many projects`, and `lack of focus` are treated as `Attention Fragmentation`.
+
+Pattern results look like this:
+
+```md
+### Attention Fragmentation
+
+Frequency: 4
+Evidence:
+- context switching
+- too many tabs
+
+Suggested Response:
+Start with one execution task. Close unrelated tabs. Do not research until the first task is complete.
+```
+
+When `/plan` runs, Mini-Me reads `## Patterns` from memory and prints pattern warnings before the plan:
+
+```text
+=== Pattern Warnings ===
+
+* Attention Fragmentation is recurring: Start with one execution task. Close unrelated tabs. Do not research until the first task is complete.
+```

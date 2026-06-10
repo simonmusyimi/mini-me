@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter
 from dataclasses import dataclass
 import re
 
 from core.file_store import FileStore
+from core.pattern_taxonomy import match_pattern_groups
 
 
 GENERATED_START = "<!-- MINI-ME:PATTERNS:START -->"
@@ -22,16 +23,21 @@ class ReviewEntry:
 
 
 @dataclass(frozen=True)
-class DetectedPattern:
-    source: str
-    phrase: str
-    count: int
-    pattern: str
-    evidence: str
+class GroupedPattern:
+    name: str
+    frequency: int
+    evidence: tuple[str, ...]
     suggested_response: str
 
 
-def analyze_and_update_patterns(store: FileStore) -> list[DetectedPattern]:
+@dataclass(frozen=True)
+class PatternWarning:
+    name: str
+    frequency: int
+    suggested_response: str
+
+
+def analyze_and_update_patterns(store: FileStore) -> list[GroupedPattern]:
     reviews = store.read_file("reviews.md", "# Reviews\n")
     patterns = detect_patterns(reviews)
     memory = store.read_file("memory.md", "# Memory\n")
@@ -43,44 +49,52 @@ def detect_patterns(
     reviews_markdown: str,
     min_mentions: int = MIN_PATTERN_MENTIONS,
     recent_review_limit: int = RECENT_REVIEW_LIMIT,
-) -> list[DetectedPattern]:
+) -> list[GroupedPattern]:
     reviews = parse_reviews(reviews_markdown)
     recent_reviews = reviews[-recent_review_limit:]
 
-    counts: dict[tuple[str, str], set[int]] = defaultdict(set)
-    originals: dict[tuple[str, str], str] = {}
+    group_counts: Counter[str] = Counter()
+    evidence_counts: dict[str, Counter[str]] = {}
+    suggested_responses: dict[str, str] = {}
     fields = [
-        ("blocker", "blocked"),
-        ("lesson", "learned"),
-        ("tomorrow rule", "change"),
+        "blocked",
+        "learned",
+        "change",
     ]
 
-    for review_index, review in enumerate(recent_reviews):
-        for source, attribute in fields:
-            seen_in_review: set[str] = set()
+    for review in recent_reviews:
+        for attribute in fields:
             for phrase in _split_review_items(getattr(review, attribute)):
-                normalized = _normalize_phrase(phrase)
-                if not normalized or normalized in {"nothing recorded", "none", "n/a", "na"}:
+                if _is_empty_review_value(phrase):
                     continue
 
-                key = (source, normalized)
-                originals.setdefault(key, phrase)
-                seen_in_review.add(normalized)
+                for group in match_pattern_groups(phrase):
+                    group_counts[group.name] += 1
+                    evidence_counts.setdefault(group.name, Counter())[phrase] += 1
+                    suggested_responses[group.name] = group.suggested_response
 
-            for normalized in seen_in_review:
-                counts[(source, normalized)].add(review_index)
-
-    patterns: list[DetectedPattern] = []
-    for (source, normalized), review_indexes in counts.items():
-        count = len(review_indexes)
-        if count < min_mentions:
+    patterns: list[GroupedPattern] = []
+    for group_name, frequency in group_counts.items():
+        if frequency < min_mentions:
             continue
 
-        phrase = originals[(source, normalized)]
-        patterns.append(_build_pattern(source, phrase, count))
+        evidence = tuple(
+            phrase
+            for phrase, _count in sorted(
+                evidence_counts[group_name].items(),
+                key=lambda item: (-item[1], item[0].lower()),
+            )
+        )
+        patterns.append(
+            GroupedPattern(
+                name=group_name,
+                frequency=frequency,
+                evidence=evidence,
+                suggested_response=suggested_responses[group_name],
+            )
+        )
 
-    source_rank = {"blocker": 0, "lesson": 1, "tomorrow rule": 2}
-    return sorted(patterns, key=lambda item: (-item.count, source_rank[item.source], item.phrase.lower()))
+    return sorted(patterns, key=lambda item: (-item.frequency, item.name.lower()))
 
 
 def parse_reviews(reviews_markdown: str) -> list[ReviewEntry]:
@@ -99,7 +113,7 @@ def parse_reviews(reviews_markdown: str) -> list[ReviewEntry]:
     ]
 
 
-def update_memory_patterns(memory_markdown: str, patterns: list[DetectedPattern]) -> str:
+def update_memory_patterns(memory_markdown: str, patterns: list[GroupedPattern]) -> str:
     memory = memory_markdown.strip() or "# Memory"
     generated_block = _format_generated_patterns(patterns)
     pattern_section = re.compile(
@@ -121,6 +135,43 @@ def update_memory_patterns(memory_markdown: str, patterns: list[DetectedPattern]
     return updated.rstrip() + "\n"
 
 
+def extract_pattern_warnings(memory_markdown: str) -> list[PatternWarning]:
+    pattern_body = _patterns_section_body(memory_markdown)
+    if not pattern_body:
+        return []
+
+    warning_pattern = re.compile(
+        r"^### (?P<name>.+?)\n+"
+        r"Frequency:\s*(?P<frequency>\d+).*?"
+        rf"Suggested Response:\n(?P<response>.*?)(?=^### |^{re.escape(GENERATED_END)}|\Z)",
+        flags=re.MULTILINE | re.DOTALL,
+    )
+
+    warnings = []
+    for match in warning_pattern.finditer(pattern_body):
+        warnings.append(
+            PatternWarning(
+                name=match.group("name").strip(),
+                frequency=int(match.group("frequency")),
+                suggested_response=" ".join(match.group("response").strip().split()),
+            )
+        )
+    return warnings
+
+
+def format_pattern_warnings(memory_markdown: str) -> str:
+    warnings = extract_pattern_warnings(memory_markdown)
+    if not warnings:
+        return ""
+
+    lines = ["=== Pattern Warnings ===", ""]
+    for warning in warnings:
+        lines.append(
+            f"* {warning.name} is recurring: {warning.suggested_response}"
+        )
+    return "\n".join(lines)
+
+
 def _section_text(review_body: str, section: str) -> str:
     section_pattern = re.compile(
         rf"^### {re.escape(section)}[ \t]*\n(?P<body>.*?)(?=^### |\Z)",
@@ -132,9 +183,20 @@ def _section_text(review_body: str, section: str) -> str:
     return match.group("body").strip()
 
 
+def _patterns_section_body(memory_markdown: str) -> str:
+    section_pattern = re.compile(
+        r"^## Patterns[ \t]*\n(?P<body>.*?)(?=^## |\Z)",
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    match = section_pattern.search(memory_markdown)
+    if not match:
+        return ""
+    return match.group("body")
+
+
 def _split_review_items(text: str) -> list[str]:
-    items = []
-    for line in text.splitlines():
+    items: list[str] = []
+    for line in re.split(r"[\n,;]+", text):
         cleaned = line.strip().lstrip("-*").strip()
         if cleaned:
             items.append(cleaned)
@@ -143,81 +205,40 @@ def _split_review_items(text: str) -> list[str]:
     return items
 
 
-def _normalize_phrase(phrase: str) -> str:
-    normalized = phrase.lower()
-    normalized = re.sub(r"[^a-z0-9]+", " ", normalized)
-    normalized = re.sub(r"\s+", " ", normalized).strip()
-    return normalized
+def _is_empty_review_value(phrase: str) -> bool:
+    cleaned = phrase.strip().lower()
+    return cleaned in {"", "nothing recorded", "none", "n/a", "na"}
 
 
-def _build_pattern(source: str, phrase: str, count: int) -> DetectedPattern:
-    readable_phrase = _sentence_case(phrase)
-    if source == "blocker":
-        pattern = f"{readable_phrase} appears repeatedly"
-    elif source == "lesson":
-        pattern = f"Lesson repeats: {readable_phrase}"
-    else:
-        pattern = f"Tomorrow rule repeats: {readable_phrase}"
-
-    return DetectedPattern(
-        source=source,
-        phrase=phrase,
-        count=count,
-        pattern=pattern,
-        evidence=f"Mentioned in {count} reviews as a {source}",
-        suggested_response=_suggest_response(source, phrase),
-    )
-
-
-def _sentence_case(text: str) -> str:
-    cleaned = " ".join(text.strip().split())
-    if not cleaned:
-        return cleaned
-    return cleaned[0].upper() + cleaned[1:]
-
-
-def _suggest_response(source: str, phrase: str) -> str:
-    normalized = _normalize_phrase(phrase)
-
-    if source == "blocker":
-        if "context switch" in normalized or "switching" in normalized:
-            return "Start the day with one execution task before research"
-        if "doom" in normalized or "scroll" in normalized or "social" in normalized:
-            return "Put the phone away before deep work and check it only after the first task"
-        if "tool" in normalized or "research" in normalized:
-            return "Timebox research, then ship the smallest useful version"
-        return f"Choose one prevention step before work starts: {phrase}"
-
-    if source == "lesson":
-        if "ship" in normalized or "shipping" in normalized:
-            return "Turn this lesson into tomorrow's first concrete shipping action"
-        return "Turn this lesson into one visible action in tomorrow's plan"
-
-    return "Make this tomorrow rule the first check before choosing tasks"
-
-
-def _format_generated_patterns(patterns: list[DetectedPattern]) -> str:
+def _format_generated_patterns(patterns: list[GroupedPattern]) -> str:
     if not patterns:
         body = "\n".join(
             [
-                "- Pattern: No repeated blockers, lessons, or tomorrow rules detected yet",
-                "  Evidence: Fewer than 2 matching review entries found",
-                "  Suggested response: Keep completing daily reviews until trends are visible",
+                "No grouped patterns detected yet.",
+                "",
+                "Evidence: Fewer than 2 matching review entries found.",
+                "Suggested Response: Keep completing daily reviews until trends are visible.",
             ]
         )
     else:
         blocks = []
         for pattern in patterns:
+            evidence_lines = "\n".join(f"- {evidence}" for evidence in pattern.evidence)
             blocks.append(
                 "\n".join(
                     [
-                        f"- Pattern: {pattern.pattern}",
-                        f"  Evidence: {pattern.evidence}",
-                        f"  Suggested response: {pattern.suggested_response}",
+                        f"### {pattern.name}",
+                        "",
+                        f"Frequency: {pattern.frequency}",
+                        "Evidence:",
+                        evidence_lines,
+                        "",
+                        "Suggested Response:",
+                        pattern.suggested_response,
                     ]
                 )
             )
-        body = "\n".join(blocks)
+        body = "\n\n".join(blocks)
 
     return f"{GENERATED_START}\n{body}\n{GENERATED_END}"
 

@@ -51,19 +51,29 @@ Each section receives bullets in this shape:
 
 ## How Pattern Detection Works
 
-When `/patterns` runs, Mini-Me reads `data/reviews.md` and parses recent daily reviews. V2 starts with rule-based matching:
+When `/patterns` runs, Mini-Me reads `data/reviews.md` and parses recent daily reviews. V2.1 uses local semantic grouping from `core/pattern_taxonomy.py`, with no API required.
 
-- repeated `Blocked` answers become blocker patterns
-- repeated `Learned` answers become lesson patterns
-- repeated `Change Tomorrow` answers become tomorrow-rule patterns
+The first taxonomy groups are:
 
-The detector counts repeated normalized phrases across reviews. It writes generated results into `data/memory.md` under `## Patterns` without deleting Simon's existing notes or other memory sections. Each detected pattern includes:
+- `Attention Fragmentation`
+- `Avoidance / Escape Behavior`
+- `Overplanning Instead of Shipping`
 
-- `Pattern`
+The detector normalizes text by lowercasing, removing punctuation, and collapsing spaces. This lets rough inputs such as `tabs,lack`, `doomscroling`, and `doom scroling` still match useful groups.
+
+The detector counts grouped evidence from `Blocked`, `Learned`, and `Change Tomorrow` answers. It writes generated results into `data/memory.md` under `## Patterns` without deleting Simon's existing notes or other memory sections. Each detected pattern includes:
+
+- `Frequency`
 - `Evidence`
-- `Suggested response`
+- `Suggested Response`
 
-The LLM is not required for V2 pattern detection.
+The LLM is not required for V2.1 pattern detection or pattern warnings.
+
+## Pattern-Aware Planning
+
+When `/plan` runs, Mini-Me reads `data/memory.md`, extracts generated grouped patterns from `## Patterns`, and prints pattern warnings before the plan. This makes recurring risks visible even when no API key is configured.
+
+The pattern warnings also remain inside the planning prompt so the LLM can account for recurring behavior in today's recommendations.
 
 ## LLM Provider Abstraction
 

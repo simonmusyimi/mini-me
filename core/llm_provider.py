@@ -32,7 +32,7 @@ To enable /plan:
 4. Optional: set MINIME_LLM_MODEL to the model you want
 
 Non-LLM commands still work:
-/add-task, /show-tasks, /done, /review, /exit
+/patterns, /add-task, /show-tasks, /done, /review, /exit
 """
 
 
