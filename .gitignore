@@ -4,3 +4,7 @@ __pycache__/
 .pytest_cache/
 .pytest-tmp/
 *.pyc
+
+# Personal data — goals, tasks, daily reviews, memory. Stays local.
+# A fresh clone regenerates seed defaults via core/file_store.py.
+data/
