@@ -47,7 +47,7 @@ OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_API_KEY=your_api_key_here
 ```
 
-If no API key is set, `/plan` prints setup instructions instead of crashing. Non-LLM commands still work.
+If no API key is set, `/plan` still works: it falls back to a local deterministic planner that ranks open tasks using your current focus in `goals.md`, always deprioritizes research-flavored tasks, caps the plan at 3 actions, and tells you to execute them in order. Pattern warnings are shown in both modes. Setting a real API key upgrades `/plan` to a full LLM plan.
 
 ## Run
 

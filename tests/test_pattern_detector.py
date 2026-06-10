@@ -86,6 +86,7 @@ Block feeds
 
 class FakeProvider:
     provider_name = "fake"
+    is_available = True
 
     def __init__(self) -> None:
         self.prompt = ""
@@ -265,5 +266,7 @@ def test_cli_dispatch_keeps_existing_commands_working(tmp_path: Path, monkeypatc
     output = capsys.readouterr().out
     assert "Finish KCA assignment" in output
     assert "Analyzing recent reviews" in output
-    assert "Mini-Me cannot generate an LLM plan yet" in output
+    assert "(Local plan" in output
+    assert "Start with #1." in output
+    assert "Mini-Me cannot generate an LLM plan yet" not in output
     assert "Keep the loop alive" in output

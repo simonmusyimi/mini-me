@@ -25,7 +25,17 @@ When `/plan` runs, Mini-Me reads:
 
 It builds a structured prompt asking for the three highest-value actions, ranked by impact. The planner asks the configured LLM provider for the answer and prints it in the terminal.
 
-If the API key is missing, the app prints setup instructions and keeps all non-LLM commands available.
+## Local Fallback Planner (V2.2)
+
+If the API key is missing (or still the `.env.example` placeholder), `/plan` falls back to `core/local_planner.py`: a pure, deterministic ranker with no network access.
+
+Ranking is three tiers, not a scoring formula:
+
+1. Research-flavored tasks (`research`, `explore`, `compare`, `watch`, `read`, ...) always sink to the bottom tier. This encodes the product thesis — shipping beats researching — so it is always on, not gated on pattern state.
+2. Tasks sharing a significant word (4+ characters) with `## Current Focus` in `goals.md` rise to the top tier.
+3. Everything else stays in the middle. Ties keep file order, so older tasks surface first.
+
+The output is capped at 3 actions, states how many open tasks were deliberately ignored, and instructs serial execution ("Start with #1"). Pattern warnings are prefixed in both local and LLM modes. The local plan labels itself so heuristics are never confused with LLM reasoning.
 
 ## How The Review Loop Works
 

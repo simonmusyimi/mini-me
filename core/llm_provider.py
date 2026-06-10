@@ -9,6 +9,7 @@ from urllib import error, request
 
 class LLMProvider(ABC):
     provider_name: str
+    is_available: bool = True
 
     @abstractmethod
     def generate(self, prompt: str) -> str:
@@ -16,6 +17,8 @@ class LLMProvider(ABC):
 
 
 class MissingLLMProvider(LLMProvider):
+    is_available = False
+
     def __init__(self, provider_name: str, reason: str) -> None:
         self.provider_name = provider_name
         self.reason = reason
@@ -95,7 +98,7 @@ def get_llm_provider(project_root: Path | str | None = None) -> LLMProvider:
     provider_name = os.getenv("MINIME_LLM_PROVIDER", "openai").strip().lower()
     if provider_name == "openai":
         api_key = os.getenv("OPENAI_API_KEY", "").strip()
-        if not api_key:
+        if not api_key or api_key == "your_api_key_here":
             return MissingLLMProvider("openai", "OPENAI_API_KEY is missing.")
 
         model = os.getenv("MINIME_LLM_MODEL", "gpt-4o-mini").strip()

@@ -1,7 +1,8 @@
-- [ ] V1: CLI Daily Planner
-- [ ] V1.5: Daily Reflection Loop
-- [ ] V2: Pattern Detection
-- [ ] V2.1: Pattern-Aware Planning + Semantic Pattern Detection
+- [x] V1: CLI Daily Planner
+- [x] V1.5: Daily Reflection Loop
+- [x] V2: Pattern Detection
+- [x] V2.1: Pattern-Aware Planning + Semantic Pattern Detection
+- [x] V2.2: Local Fallback Planner (/plan works without an API key)
 - [ ] V3: Memory Engine
 - [ ] V4: Study Agent
 - [ ] V5: Builder/Coding Agent

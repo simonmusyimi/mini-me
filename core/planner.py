@@ -4,7 +4,9 @@ from datetime import date
 
 from core.file_store import FileStore
 from core.llm_provider import LLMProvider
+from core.local_planner import build_local_plan
 from core.pattern_detector import format_pattern_warnings
+from core.task_manager import TaskManager
 
 
 class Planner:
@@ -15,8 +17,12 @@ class Planner:
     def generate_plan(self) -> str:
         memory = self.store.read_file("memory.md", "# Memory\n")
         warnings = format_pattern_warnings(memory)
-        prompt = self.build_prompt()
-        plan = self.llm_provider.generate(prompt)
+        if self.llm_provider.is_available:
+            plan = self.llm_provider.generate(self.build_prompt())
+        else:
+            goals = self.store.read_file("goals.md", "# Goals\n")
+            open_tasks = TaskManager(self.store).list_open_tasks()
+            plan = build_local_plan(open_tasks, goals)
         if warnings:
             return f"{warnings}\n\n{plan}"
         return plan
