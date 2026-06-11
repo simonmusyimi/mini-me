@@ -245,12 +245,12 @@ def test_all_existing_commands_are_still_listed(capsys) -> None:
     print_help()
 
     output = capsys.readouterr().out
-    for command in ["/plan", "/patterns", "/add-task", "/show-tasks", "/done", "/review", "/exit"]:
+    for command in ["/plan", "/post", "/patterns", "/add-task", "/show-tasks", "/done", "/review", "/exit"]:
         assert command in output
 
 
 def test_cli_dispatch_keeps_existing_commands_working(tmp_path: Path, monkeypatch, capsys) -> None:
-    commands = iter(["/show-tasks", "/patterns", "/plan", "/exit"])
+    commands = iter(["/show-tasks", "/patterns", "/plan", "/post", "/exit"])
 
     def fake_input(prompt: str = "") -> str:
         print(prompt, end="")
@@ -269,4 +269,5 @@ def test_cli_dispatch_keeps_existing_commands_working(tmp_path: Path, monkeypatc
     assert "(Local plan" in output
     assert "Start with #1." in output
     assert "Mini-Me cannot generate an LLM plan yet" not in output
+    assert "Nothing completed yet to post about." in output
     assert "Keep the loop alive" in output

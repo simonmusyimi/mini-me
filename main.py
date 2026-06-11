@@ -7,6 +7,7 @@ from core.file_store import FileStore
 from core.llm_provider import get_llm_provider
 from core.pattern_detector import analyze_and_update_patterns
 from core.planner import Planner
+from core.post_drafter import PostDrafter
 from core.review_manager import append_dated_bullet, save_daily_review
 from core.task_manager import TaskManager
 
@@ -19,13 +20,14 @@ def print_intro() -> None:
     print("Mini-Me")
     print("The infrastructure of ambition for people without mentors, money, or network.")
     print()
-    print("Type /plan, /patterns, /add-task, /show-tasks, /done, /review, /help, or /exit.")
+    print("Type /plan, /post, /patterns, /add-task, /show-tasks, /done, /review, /help, or /exit.")
     print()
 
 
 def print_help() -> None:
     print("Available commands:")
     print("/plan       Generate today's 3 highest-value actions")
+    print("/post       Draft a build-in-public X post from completed work")
     print("/patterns   Detect repeated blockers, lessons, and tomorrow rules")
     print("/add-task   Add a new task")
     print("/show-tasks Show current tasks")
@@ -102,6 +104,14 @@ def handle_plan(planner: Planner) -> None:
     print(planner.generate_plan())
 
 
+def handle_post(post_drafter: PostDrafter) -> None:
+    print("Drafting a build-in-public post from your completed work...")
+    print()
+    print(post_drafter.draft_post())
+    print()
+    print("Copy it, edit it, post it. Then mark the post task done with /done.")
+
+
 def handle_patterns(store: FileStore) -> None:
     print("Analyzing recent reviews for repeated blockers, lessons, and tomorrow rules...")
     patterns = analyze_and_update_patterns(store)
@@ -131,6 +141,7 @@ def run() -> None:
     task_manager = TaskManager(store)
     llm_provider = get_llm_provider(PROJECT_ROOT)
     planner = Planner(store, llm_provider)
+    post_drafter = PostDrafter(store, llm_provider)
 
     print_intro()
 
@@ -146,6 +157,8 @@ def run() -> None:
 
         if command == "/plan":
             handle_plan(planner)
+        elif command == "/post":
+            handle_post(post_drafter)
         elif command == "/patterns":
             handle_patterns(store)
         elif command == "/add-task":

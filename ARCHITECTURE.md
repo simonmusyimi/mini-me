@@ -37,6 +37,10 @@ Ranking is three tiers, not a scoring formula:
 
 The output is capped at 3 actions, states how many open tasks were deliberately ignored, and instructs serial execution ("Start with #1"). Pattern warnings are prefixed in both local and LLM modes. The local plan labels itself so heuristics are never confused with LLM reasoning.
 
+## Post Drafter (V2.3)
+
+`/post` turns completed work into a build-in-public X post draft. `core/post_drafter.py` reads the most recent dated bullets under `## Completed Tasks` in memory (deduplicated, empty values skipped) plus `## Current Focus` from goals. With an API key it asks the LLM for a sub-280-character draft; without one it produces a plain local template. The user always copies, edits, and posts manually — Mini-Me drafts, it does not publish.
+
 ## How The Review Loop Works
 
 When `/review` runs, Mini-Me asks four questions:

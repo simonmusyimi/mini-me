@@ -58,6 +58,7 @@ python main.py
 ## Commands
 
 - `/plan` - generate today's 3 highest-value actions
+- `/post` - draft a build-in-public X post from completed work
 - `/patterns` - detect repeated blockers, lessons, and tomorrow rules
 - `/add-task` - add a new task
 - `/show-tasks` - show current tasks
