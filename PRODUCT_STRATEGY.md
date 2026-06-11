@@ -27,9 +27,9 @@ The moat is personal memory plus daily feedback. Over time, Mini-Me should know 
 
 ## V1 Success Metric
 
-Simon uses Mini-Me for seven consecutive days to plan, complete tasks, and review outcomes.
+Simon uses Mini-Me to complete tasks, and review outcomes.
 
-## What Not To Build Yet
+## What To Build next
 
 - Mobile app.
 - Web dashboard.
